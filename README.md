@@ -5,6 +5,19 @@ This is a mobile application that will be focused on personal finance management
 - Planning the integration of AI-based predictions and recommendations to help users make better financial decisions and notice them about upcoming payments of subscriptions or other payments.
 - It’ll use technologies such as: Node.js, React.js, Expo Go, SQLite, Vercel, Render, JavaScript, C#, and Python for the training and evaluation of the AI Model which will give the predictions or recommendations. 
 
+## Features
+- Expense tracking
+- Subscriptions management
+- Statistics and insights
+
+## Tech Stack
+- React
+- JavaScript
+- SQLite
+- Python
+- C# 
+- Vercel + Render
+
 # Welcome to your Expo app 👋
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
