@@ -1,28 +1,35 @@
 
 # MoneyAdmin
-This is a mobile application that will be focused on personal finance management, enabling users to track expenses and subscriptions efficiently.
-- Designing features for data visualization through statistical charts to provide insights into spending habits. 
-- Planning the integration of AI-based predictions and recommendations to help users make better financial decisions and notice them about upcoming payments of subscriptions or other payments.
-- It’ll use technologies such as: Node.js, React.js, Expo Go, SQLite, Vercel, Render, JavaScript, C#, and Python for the training and evaluation of the AI Model which will give the predictions or recommendations. 
 
-## Features
+MoneyAdmin is a mobile application focused on **personal finance management**, allowing users to efficiently track **expenses and subscriptions**.
+
+The goal of the application is to help users better understand their spending habits and make informed financial decisions through data visualization and AI-driven insights.
+
+## 🚀 Features
 - Expense tracking
-- Subscriptions management
-- Statistics and insights
+- Subscription management
+- Statistical charts and spending insights
+- Planned AI-based predictions and recommendations
+- Notifications for upcoming subscription and recurring payments
 
-## Tech Stack
-- React
-- JavaScript
-- SQLite
-- Python
-- C# 
-- Vercel + Render
+## 🧠 AI & Analytics (Planned)
+- Expense pattern analysis
+- Predictive recommendations using machine learning models
+- Decision-support insights for better financial planning
+
+## 🛠️ Tech Stack
+- **Frontend:** React.js, Expo
+- **Backend:** Node.js, C#
+- **Database:** SQLite
+- **AI / ML:** Python
+- **Deployment:** Vercel, Render
+
 
 # Welcome to your Expo app 👋
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## Get started
+## ▶️ Getting Started
 
 1. Install dependencies
 
