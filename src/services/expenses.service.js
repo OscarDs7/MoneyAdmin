@@ -1,3 +1,5 @@
+// This service handles CRUD operations for expenses in the database.
+
 import { db } from '../database/db';
 import * as Crypto from 'expo-crypto';
 

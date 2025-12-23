@@ -1,3 +1,5 @@
+// This screen allows users to add a new expense or edit an existing one.
+
 import { useState } from 'react';
 import {
   View,

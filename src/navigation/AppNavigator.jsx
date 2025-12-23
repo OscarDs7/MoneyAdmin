@@ -1,3 +1,5 @@
+// This navigator sets up the main application navigation with bottom tabs and a stack for expenses.
+
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 

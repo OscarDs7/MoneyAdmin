@@ -1,3 +1,5 @@
+// This screen displays the list of expenses, allows adding new expenses, editing existing ones, and deleting them.
+
 import { useCallback, useState } from 'react';
 import { View, Text, FlatList, Button, StyleSheet, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
