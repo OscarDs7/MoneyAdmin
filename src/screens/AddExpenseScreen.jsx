@@ -12,6 +12,16 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { addExpense, updateExpense } from '../services/expenses.service';
+import { Picker } from '@react-native-picker/picker';
+
+// Categorías predefinidas para los gastos
+const CATEGORIES = [
+  'Comida',
+  'Entretenimiento',
+  'Suscripciones',
+  'Viajes',
+  'Otro',
+];
 
 export default function AddExpenseScreen({ navigation, route }) {
     const expense = route.params?.expense; // Gasto a editar, si existe
@@ -19,33 +29,45 @@ export default function AddExpenseScreen({ navigation, route }) {
 
     const [amount, setAmount] = useState(expense ? expense.amount.toString() : '');
     const [category, setCategory] = useState(expense ? expense.category : '');
+    const [customCategory, setCustomCategory] = useState('');
     const [note, setNote] = useState(expense ? expense.note : '');
     const [date, setDate] = useState(expense ? new Date(expense.date) : new Date());
     const [showPicker, setShowPicker] = useState(false);
 
-    // Función para guardar el gasto (nuevo o editado)
-    const saveExpense = () => {
+  // Función para guardar el gasto (nuevo o editado)
+  const saveExpense = () => {
     if (!amount || !category) {
-        alert('Por favor completa monto y categoría.');
-        return;
+      alert('Por favor completa monto y categoría.');
+      return;
     }
+
+    if (category === 'Otro' && !customCategory) {
+      alert('Por favor especifica la categoría.');
+      return;
+    }
+
+    const finalCategory =
+      category === 'Otro' ? customCategory : category;
+
     const data = {
-        amount: parseFloat(amount),
-        category,
-        note,
-        date: date.toISOString(),
+      amount: parseFloat(amount),
+      category: finalCategory,
+      note,
+      date: date.toISOString(),
     };
 
     if (isEditing) {
-        updateExpense(expense.id, data);
+      updateExpense(expense.id, data);
     } else {
-        addExpense(data);
+      addExpense(data);
     }
 
     navigation.goBack();
-    };
+  };
+  // Fin-SaveExpense
 
-    // Función para manejar el cambio de fecha
+
+  // Función para manejar el cambio de fecha
   const onChangeDate = (_, selectedDate) => {
     setShowPicker(false);
     if (selectedDate) {
@@ -66,13 +88,31 @@ export default function AddExpenseScreen({ navigation, route }) {
         style={styles.input}
       />
 
+      <View style={styles.pickerContainer}>
+      <Picker
+        selectedValue={category}
+        onValueChange={(value) => {
+          setCategory(value);
+          if (value !== 'Otro') {
+            setCustomCategory('');
+          }
+        }}
+      >
+        <Picker.Item label="Selecciona una categoría" value="" />
+        {CATEGORIES.map((cat) => (
+          <Picker.Item key={cat} label={cat} value={cat} />
+        ))}
+      </Picker>
+      {category === 'Otro' && (
       <TextInput
-        placeholder="Categoría"
-        value={category}
-        onChangeText={setCategory}
+        placeholder="Especifica la categoría"
+        value={customCategory}
+        onChangeText={setCustomCategory}
         style={styles.input}
       />
-
+    )}
+    </View>
+    
       <Pressable
         onPress={() => setShowPicker(true)}
         style={styles.dateButton}
@@ -118,4 +158,11 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginBottom: 12,
   },
+  pickerContainer: {
+  borderWidth: 1,
+  borderColor: '#ccc',
+  borderRadius: 6,
+  marginBottom: 12,
+},
+
 });
