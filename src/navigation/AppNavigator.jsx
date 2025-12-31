@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/HomeScreen';
 import ExpensesScreen from '../screens/ExpensesScreen';
 import AddExpenseScreen from '../screens/AddExpenseScreen';
+import SubscriptionsStack from './SubscriptionsStack';
 import SubscriptionsScreen from '../screens/SubscriptionsScreen';
 
 const Tab = createBottomTabNavigator();
@@ -27,6 +28,11 @@ function ExpensesStack() {
         component={AddExpenseScreen}
         options={{ title: 'Nuevo gasto' ?? 'Editar gasto' }}
       />
+      <Stack.Screen
+        name="AddSubscription"
+        component="SubscriptionsScreen"
+        options={{ title: 'Suscripciones' }}
+      />  
     </Stack.Navigator>
   );
 }
@@ -36,7 +42,10 @@ export default function AppNavigator() {
     <Tab.Navigator screenOptions={{ headerShown: false }}>
       <Tab.Screen name="Inicio" component={HomeScreen} />
       <Tab.Screen name="Gastos" component={ExpensesStack} />
-      <Tab.Screen name="Suscripciones" component={SubscriptionsScreen} />
+      <Tab.Screen
+        name="Suscripciones"
+        component={SubscriptionsStack}
+      />
     </Tab.Navigator>
   );
 }
