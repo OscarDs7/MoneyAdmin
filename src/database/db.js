@@ -1,8 +1,21 @@
-import * as SQLite from 'expo-sqlite';
+import { Platform } from 'react-native';
 
-export const db = SQLite.openDatabaseSync('moneyadmin.db');
+let db;
+
+if (Platform.OS !== 'web') {
+  // Import dinámico solo en Android/iOS
+  const SQLite = require('expo-sqlite');
+  db = SQLite.openDatabaseSync('moneyadmin.db');
+} else {
+  // Mock para web
+  db = {
+    execSync: () => {},
+  };
+}
 
 export const initDatabase = () => {
+  if (Platform.OS === 'web') return; // No hacer nada en web
+
   try {
     // Tabla de gastos
     db.execSync(`
@@ -32,3 +45,5 @@ export const initDatabase = () => {
     console.error('Error al inicializar DB', error);
   }
 };
+
+export { db };
