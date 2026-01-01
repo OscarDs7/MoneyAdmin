@@ -47,10 +47,17 @@ export default function AddExpenseScreen({ navigation, route }) {
     }
 
     const finalCategory =
-      category === 'Otro' ? customCategory : category;
+      category === 'Otro' ? customCategory.trim() : category;
+
+    // Variable para validar que no esté vacío el monto o sea número negativo
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      alert('Ingresa un monto válido.');
+      return;
+    }
 
     const data = {
-      amount: parseFloat(amount),
+      amount: parsedAmount,
       category: finalCategory,
       note,
       date: date.toISOString(),
@@ -83,6 +90,7 @@ export default function AddExpenseScreen({ navigation, route }) {
       <TextInput
         placeholder="Monto"
         keyboardType="numeric"
+        placeholderTextColor = "#000"
         value={amount}
         onChangeText={setAmount}
         style={styles.input}
@@ -91,6 +99,9 @@ export default function AddExpenseScreen({ navigation, route }) {
       <View style={styles.pickerContainer}>
       <Picker
         selectedValue={category}
+          style={{
+            color: category ? '#000' : '#888', // gris cuando es placeholder
+          }}
         onValueChange={(value) => {
           setCategory(value);
           if (value !== 'Otro') {
@@ -106,6 +117,7 @@ export default function AddExpenseScreen({ navigation, route }) {
       {category === 'Otro' && (
       <TextInput
         placeholder="Especifica la categoría"
+        placeholderTextColor = "#000"
         value={customCategory}
         onChangeText={setCustomCategory}
         style={styles.input}
@@ -131,6 +143,7 @@ export default function AddExpenseScreen({ navigation, route }) {
 
       <TextInput
         placeholder="Nota (opcional)"
+        placeholderTextColor = "#000"
         value={note}
         onChangeText={setNote}
         style={styles.input}
@@ -163,6 +176,6 @@ const styles = StyleSheet.create({
   borderColor: '#ccc',
   borderRadius: 6,
   marginBottom: 12,
-},
+}
 
 });
