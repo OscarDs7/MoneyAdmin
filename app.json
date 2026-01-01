@@ -1,22 +1,40 @@
 {
   "expo": {
-    "name": "moneyadmin",
+    "name": "MoneyAdmin",
     "slug": "moneyadmin",
     "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "plugins": [
+      "expo-notifications"
+    ],
+    "icon": "src/images/MoneyAdmin1.png",
     "scheme": "moneyadmin",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/e688ebb6-d066-434b-ba87-ce7bde80f70c"
+    },
     "android": {
+      "package": "com.oscargim7.moneyadmin",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e688ebb6-d066-434b-ba87-ce7bde80f70c"
+      }
+    },
+    "owner": "oscargim7",
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }
