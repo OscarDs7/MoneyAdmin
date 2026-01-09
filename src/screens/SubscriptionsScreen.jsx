@@ -29,14 +29,6 @@ export default function SubscriptionsScreen({ navigation }) {
         title="Agregar suscripción"
         onPress={() => navigation.navigate('AddSubscription')}
       />
-      <Button
-      title="Borrar todas las suscripciones"
-      onPress={() => {
-        clearSubscriptions();
-        loadSubscriptions();
-        sendTestNotification('Suscripciones borradas', 'Se eliminaron todas.');
-      }}
-    />
     
       <FlatList
         data={subscriptions}
@@ -55,6 +47,14 @@ export default function SubscriptionsScreen({ navigation }) {
           </View>
         )}
       />
+   <Button
+      title="Borrar todas las suscripciones"
+      onPress={() => {
+        clearSubscriptions();
+        loadSubscriptions();
+        sendTestNotification('Suscripciones borradas', 'Se eliminaron todas.');
+      }}
+    />
     </View>
   );
 }

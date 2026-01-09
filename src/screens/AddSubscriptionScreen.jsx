@@ -35,7 +35,7 @@ addSubscription({
 // Solicitar permisos
 const hasPermission = await requestNotificationPermissions();
 if (hasPermission) {
-  const reminderDate = getReminderDate(billingDate); // Fecha de recordatorio
+  const reminderDate = getReminderDate(billingDate); // Fecha de recordatorio (2 días antes)
   // Notificación de recordatorio
   await scheduleSubscriptionNotification({
     title: '⏰ Recordatorio de pago',
