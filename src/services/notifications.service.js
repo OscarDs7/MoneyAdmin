@@ -1,23 +1,35 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
-/* 🔹 HANDLER GLOBAL */
+/* 🔹 HANDLER GLOBAL (ADAPTADO CORRECTAMENTE) */
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
+  handleNotification: async () => {
+    if (Platform.OS === 'ios') {
+      return {
+        shouldShowBanner: true,   // banner visual
+        shouldShowList: true,     // aparece en Notification Center
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+      };
+    }
+
+    // ANDROID
+    return {
+      shouldShowAlert: true,     // muestra notificación normal
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    };
+  },
 });
 
-/* 🔐 PEDIR PERMISOS (OBLIGATORIO ANDROID 13+) */
+/* 🔐 PEDIR PERMISOS */
 export async function requestNotificationPermissions() {
   const { status } = await Notifications.requestPermissionsAsync();
   console.log('🔐 Notification permission status:', status);
   return status === 'granted';
 }
 
-/* 📡 CANAL ANDROID (SIN BYPASS DND) */
+/* 📡 CANAL ANDROID */
 export async function setupNotificationChannel() {
   if (Platform.OS === 'android') {
     console.log('📡 Creando canal Android');
@@ -33,7 +45,7 @@ export async function setupNotificationChannel() {
   }
 }
 
-/* 🧪 NOTIFICACIÓN DE PRUEBA REAL */
+/* 🧪 NOTIFICACIÓN DE PRUEBA */
 export async function sendTestNotification() {
   console.log('🚨 Programando notificación REAL');
 
@@ -48,12 +60,59 @@ export async function sendTestNotification() {
   await Notifications.scheduleNotificationAsync({
     content: {
       title: '🚨 MoneyAdmin',
-      body: 'Notificación de prueba en producción',
+      body: 'Se borraron todas las suscripciones',
       sound: 'default',
-      channelId: 'subscriptions',
     },
     trigger: {
       seconds: 5,
+      channelId: 'subscriptions',
     },
   });
+}
+
+
+// 📆 PROGRAMAR NOTIFICACIÓN DE SUSCRIPCIÓN
+export async function scheduleSubscriptionNotification({ title, body, triggerDate }) {
+  //console.log('📆 Programando notificación de suscripción para:', triggerDate);
+  const hasPermission = await requestNotificationPermissions();
+  if (!hasPermission) return;
+
+  await setupNotificationChannel();
+
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title,
+      body,
+      sound: 'default',
+      //channelId: 'subscriptions',
+    },
+    trigger: {
+      date: triggerDate,   // Usa fecha exacta
+      channelId: 'subscriptions',
+    },
+  });
+}
+
+/* 📅 PROGRAMAR NOTIFICACIÓN PARA EL DÍA DE COBRO */
+export async function scheduleBillingDayNotification({ title, body, billingDate }) {
+  //console.log('📅 Programando notificación para el día de cobro:', billingDate);
+  const hasPermission = await requestNotificationPermissions();
+  if (!hasPermission) return;
+
+  await setupNotificationChannel();
+
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title,
+      body,
+      sound: 'default',
+      //channelId: 'subscriptions',
+    },
+    trigger: {
+      date: billingDate,   // FECHA EXACTA DEL COBRO
+      channelId: 'subscriptions',
+    },
+  });
+
+  console.log(`📅 Notificación programada para: ${billingDate}`);
 }

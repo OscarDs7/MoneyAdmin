@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { View, Text, FlatList, Button, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { getSubscriptions, clearSubscriptions } from '../services/subscriptions.service';
-import { checkNotificationPermissions, sendTestNotification } from '../services/notifications.service';
+import { sendTestNotification } from '../services/notifications.service';
 
 export default function SubscriptionsScreen({ navigation }) {
   const [subscriptions, setSubscriptions] = useState([]);

@@ -3,6 +3,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './src/navigation/AppNavigator';
 import { initDatabase } from './src/database/db';
 import { setupNotificationChannel } from './src/services/notifications.service';
+import { checkNotificationPermissions } from './src/services/notifications.service';
+
 import * as Updates from 'expo-updates';
 
 export default function App() {
@@ -33,6 +35,9 @@ export default function App() {
 
       // Configurar canal de notificaciones
       setupNotificationChannel();
+
+      // Checar permisos de notificaciones
+      checkNotificationPermissions();
     }
 
     initApp();

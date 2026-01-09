@@ -28,11 +28,8 @@ export const addSubscription = ({
   );
 };
 
-export const deleteSubscription = (id) => {
-  db.runSync(
-    'DELETE FROM subscriptions WHERE id = ?',
-    [id]
-  );
+export const clearSubscriptions = () => {
+  db.runSync('DELETE FROM subscriptions');
 };
 
 /* Actualiza una suscripción existente */
