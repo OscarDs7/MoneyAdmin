@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { View, Text, FlatList, Button, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { getSubscriptions } from '../services/subscriptions.service';
+import { getSubscriptions, clearSubscriptions } from '../services/subscriptions.service';
 import { checkNotificationPermissions, sendTestNotification } from '../services/notifications.service';
 
 export default function SubscriptionsScreen({ navigation }) {
@@ -17,24 +17,27 @@ export default function SubscriptionsScreen({ navigation }) {
       loadSubscriptions();
     }, [])
   );
+  // Calculate total amount of subscriptions
+  const total = subscriptions.reduce((sum, s) => sum + s.amount, 0);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Suscripciones</Text>
+      <Text style={styles.total}>Total mensual: ${total}</Text>
 
       <Button
         title="Agregar suscripción"
         onPress={() => navigation.navigate('AddSubscription')}
       />
-
       <Button
-        title="🚨 Prueba definitiva Android 15"
-        onPress={async () => {
-          await checkNotificationPermissions();
-          await sendTestNotification();
-        }}
-      />
-
+      title="Borrar todas las suscripciones"
+      onPress={() => {
+        clearSubscriptions();
+        loadSubscriptions();
+        sendTestNotification('Suscripciones borradas', 'Se eliminaron todas.');
+      }}
+    />
+    
       <FlatList
         data={subscriptions}
         keyExtractor={(item) => item.id}
