@@ -70,7 +70,6 @@ export async function sendTestNotification() {
   });
 }
 
-
 // 📆 PROGRAMAR NOTIFICACIÓN DE SUSCRIPCIÓN
 export async function scheduleSubscriptionNotification({ title, body, triggerDate }) {
   //console.log('📆 Programando notificación de suscripción para:', triggerDate);
@@ -79,7 +78,7 @@ export async function scheduleSubscriptionNotification({ title, body, triggerDat
 
   await setupNotificationChannel();
 
-  await Notifications.scheduleNotificationAsync({
+  const notificatioId = await Notifications.scheduleNotificationAsync({
     content: {
       title,
       body,
@@ -91,6 +90,8 @@ export async function scheduleSubscriptionNotification({ title, body, triggerDat
       channelId: 'subscriptions',
     },
   });
+
+  return notificatioId;
 }
 
 /* 📅 PROGRAMAR NOTIFICACIÓN PARA EL DÍA DE COBRO */
@@ -101,7 +102,7 @@ export async function scheduleBillingDayNotification({ title, body, billingDate 
 
   await setupNotificationChannel();
 
-  await Notifications.scheduleNotificationAsync({
+  const notificationId = await Notifications.scheduleNotificationAsync({
     content: {
       title,
       body,
@@ -113,6 +114,51 @@ export async function scheduleBillingDayNotification({ title, body, billingDate 
       channelId: 'subscriptions',
     },
   });
-
   console.log(`📅 Notificación programada para: ${billingDate}`);
+
+  return notificationId;
+
+}
+
+// CANCELAR NOTIFICACIÓN POR ID
+export async function cancelNotification(notificationId) {
+  if (!notificationId) return;
+
+  try {
+    await Notifications.cancelScheduledNotificationAsync(notificationId);
+    console.log('🗑️ Notificación cancelada:', notificationId);
+  } catch (error) {
+    console.log('⚠️ Error cancelando notificación', error);
+  }
+}
+
+// REPROGRAMAR NOTIFICACIONES DE SUSCRIPCIÓN
+export async function rescheduleSubscriptionNotifications(subscription) {
+  // Cancelar anteriores
+  await cancelNotification(subscription.reminderNotificationId);
+  await cancelNotification(subscription.billingNotificationId);
+
+  // Calcular fechas
+  const reminderDate = subscription.reminderDate;
+  const billingDate = new Date(subscription.billingDate);
+
+  // Programar nuevas
+  const reminderNotificationId =
+    await scheduleSubscriptionNotification({
+      title: '⏰ Recordatorio de pago',
+      body: `“${subscription.name}” se cobrará pronto`,
+      triggerDate: reminderDate,
+    });
+
+  const billingNotificationId =
+    await scheduleBillingDayNotification({
+      title: '💳 Hoy se realiza el cobro',
+      body: `Hoy se cobrará tu suscripción "${subscription.name}"`,
+      billingDate,
+    });
+
+  return {
+    reminderNotificationId,
+    billingNotificationId,
+  };
 }
