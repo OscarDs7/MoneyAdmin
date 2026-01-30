@@ -36,9 +36,23 @@ export const initDatabase = () => {
         amount REAL NOT NULL,
         billingDate TEXT NOT NULL,
         frequency TEXT NOT NULL,
-        active INTEGER NOT NULL
+        active INTEGER NOT NULL,
+        reminderNotificationId TEXT,
+        billingNotificationId TEXT
       );
     `);
+
+    // Migraciones seguras
+    try {
+      db.execSync(`
+        ALTER TABLE subscriptions ADD COLUMN reminderNotificationId TEXT;`);
+    } catch {}
+    
+    
+    try {
+      db.execSync(`ALTER TABLE subscriptions ADD COLUMN billingNotificationId TEXT;`);
+    } catch {}
+
 
     console.log('Base de datos inicializada');
   } catch (error) {
