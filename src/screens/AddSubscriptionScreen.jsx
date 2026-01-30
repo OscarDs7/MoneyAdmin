@@ -1,63 +1,142 @@
 import { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 
-import { addSubscription } from '../services/subscriptions.service';
+
+import { addSubscription, updateSubscription } from '../services/subscriptions.service';
 import {
 requestNotificationPermissions,
 scheduleSubscriptionNotification,
-scheduleBillingDayNotification
+scheduleBillingDayNotification,
+cancelNotification
 } from '../services/notifications.service';
-import { getReminderDate } from '../utils/date.utils';
+import { calculateNextBillingDate, getReminderDate } from '../utils/date.utils';
 
-export default function AddSubscriptionScreen({ navigation }) {
-  const [name, setName] = useState('');
-  const [amount, setAmount] = useState('');
-  const [billingDate, setBillingDate] = useState(new Date());
+export default function AddSubscriptionScreen({ navigation, route }) {
+  const editingSubscription = route.params?.subscription;
+  const isEditing = !!editingSubscription;
+  const [name, setName] = useState(editingSubscription ? editingSubscription.name : '');
+  const [amount, setAmount] = useState(editingSubscription ? editingSubscription.amount.toString() : '');
+  const [billingDate, setBillingDate] = useState(
+    editingSubscription ?  new Date(editingSubscription.billingDate) : new Date());
   const [showPicker, setShowPicker] = useState(false);
+  const parsedAmount = parseFloat(amount) || 0; // Valor numérico del monto
+  const [saving, setSaving] = useState(false); // Estado de guardado
+  // componente frecuencia (fijo a mensual por ahora)
+  const [frequency, setFrequency] = useState(
+  editingSubscription ? editingSubscription.frequency : 'Mensual'
+);
 
+//  Función para guardar la suscripción
 const saveSubscription = async () => {
-if (!name || !amount) return;
+  if (saving) return;
+  setSaving(true);
 
-  // Fijar hora segura (9 am)
-  billingDate.setHours(9, 0, 0, 0);
+  try {
+    /* ========= VALIDACIONES ========= */
+    if (!name.trim() || isNaN(parsedAmount) || parsedAmount <= 0) {
+      Alert.alert('Datos inválidos', 'Ingresa un nombre y monto válido');
+      return;
+    }
+    /* La fecha de facturación debe ser futura, después de hoy
+    if (billingDate < new Date()) {
+      Alert.alert('Fecha inválida', 'La fecha de cobro debe ser futura');
+      return;
+    } /*
 
-// Guardar en DB
-addSubscription({
-  name,
-  amount: parseFloat(amount),
-  billingDate: billingDate.toISOString(),
-  frequency: 'Mensual',
-});
+    /* ========= DETERMINAR SI HAY QUE REPROGRAMAR ========= */
+    const originalBillingDate = editingSubscription
+      ? new Date(editingSubscription.billingDate)
+      : null;
 
-/* NOTIFICACIONES */
+    const billingDateChanged = isEditing
+      ? originalBillingDate.getTime() !== billingDate.getTime()
+      : true;
 
-// Solicitar permisos
-const hasPermission = await requestNotificationPermissions();
-if (hasPermission) {
-  const reminderDate = getReminderDate(billingDate); // Fecha de recordatorio (2 días antes)
-  // Notificación de recordatorio
-  await scheduleSubscriptionNotification({
-    title: '⏰ Recordatorio de pago',
-    body: `“${name}” se cobrará el ${billingDate.toLocaleDateString()}`,
-    triggerDate: reminderDate,
-  });
+    const frequencyChanged = isEditing
+      ? editingSubscription.frequency !== frequency
+      : true;
 
-  // Notificación el día de cobro
-  await scheduleBillingDayNotification({
-    title: '💳 Hoy se realiza el cobro',
-    body: `Hoy se cobrará tu suscripción "${name} por $${amount}"`,
-    billingDate: new Date(billingDate), // Copia de la fecha
-  });
-}
-// Volver a la pantalla anterior
-navigation.goBack();
+    const shouldRescheduleNotifications =
+      !isEditing || billingDateChanged || frequencyChanged;
 
+    const nextBillingDate = shouldRescheduleNotifications
+      ? calculateNextBillingDate(billingDate, frequency)
+      : new Date(billingDate);
+
+    /* ========= CANCELAR NOTIFICACIONES PREVIAS ========= */
+    if (isEditing && shouldRescheduleNotifications) {
+      if (editingSubscription.reminderNotificationId) {
+        await cancelNotification(editingSubscription.reminderNotificationId);
+      }
+      if (editingSubscription.billingNotificationId) {
+        await cancelNotification(editingSubscription.billingNotificationId);
+      }
+    }
+
+    /* ========= PROGRAMAR NOTIFICACIONES ========= */
+    let reminderNotificationId =
+      editingSubscription?.reminderNotificationId ?? null;
+    let billingNotificationId =
+      editingSubscription?.billingNotificationId ?? null;
+
+    let finalBillingDate = billingDate;
+
+    if (shouldRescheduleNotifications) {
+      const hasPermission = await requestNotificationPermissions();
+
+      if (hasPermission) {
+        finalBillingDate = calculateNextBillingDate(billingDate, frequency);
+
+        reminderNotificationId = await scheduleSubscriptionNotification({
+          title: '⏰ Recordatorio de pago',
+          body: `“${name}” se cobrará el ${finalBillingDate.toLocaleDateString()}`,
+          triggerDate: getReminderDate(finalBillingDate),
+        });
+
+        billingNotificationId = await scheduleBillingDayNotification({
+          title: '💳 Hoy se realiza el cobro',
+          body: `Hoy se cobrará tu suscripción "${name}" por $${parsedAmount}`,
+          nextBillingDate: finalBillingDate,
+        });
+      }
+    }
+
+    /* ========= GUARDAR EN BASE DE DATOS ========= */
+    const payload = {
+      name,
+      amount: parsedAmount,
+      billingDate: finalBillingDate.toISOString(),
+      frequency,
+      active: 1,
+      reminderNotificationId,
+      billingNotificationId,
+    };
+
+    if (isEditing) {
+      await updateSubscription(editingSubscription.id, payload);
+    } else {
+      await addSubscription(payload);
+    }
+
+    navigation.goBack();
+  } catch (error) {
+    console.error(error);
+    Alert.alert('Error', 'Ocurrió un error al guardar la suscripción');
+  } finally {
+    setSaving(false);
+  }
 };
+// Fin función guardar suscripción
 
+
+// Renderizado del componente
 return (
   <View style={styles.container}>
-    <Text style={styles.title}>Nueva suscripción</Text>
+    <Text style = {styles.title}>
+      {isEditing ? 'Editar suscripción' : 'Nueva suscripción'}
+    </Text>
 
     <TextInput
       placeholder="Nombre (Netflix, Spotify...)"
@@ -75,6 +154,21 @@ return (
       keyboardType="numeric"
       style={styles.input}
     />
+    <View style={styles.field}>
+    <Text style={styles.label}>Frecuencia</Text>
+      <Picker
+        selectedValue={frequency}
+        onValueChange={(value) => setFrequency(value)}
+      >
+        <Picker.Item label="Mensual" value="Mensual" />
+        <Picker.Item label="Anual" value="Anual" />
+      </Picker>
+      <Text style={styles.helper}>
+        {frequency === 'Mensual'
+          ? 'Se cobrará cada mes'
+          : 'Se cobrará una vez al año'}
+      </Text>
+    </View>
 
     <Button
       title={`Fecha de pago: ${billingDate.toLocaleDateString()}`}
@@ -93,7 +187,18 @@ return (
       />
     )}
 
-    <Button title="Guardar suscripción" onPress={saveSubscription} />
+    <Button
+    title={
+      saving
+        ? 'Guardando...'
+        : isEditing
+          ? 'Actualizar suscripción'
+          : 'Guardar suscripción'
+    }
+    onPress={saveSubscription}
+    disabled={saving}
+  />
+
   </View>
 );
 
@@ -108,5 +213,10 @@ const styles = StyleSheet.create({
   padding: 12,
   marginBottom: 12,
   borderRadius: 6,
-  },
+  color: '#000',
+},
+field: { marginBottom: 16 },
+label: { fontSize: 14, fontWeight: 'bold', marginBottom: 8 },
+picker: { height: 50, width: '100%' , color: '#000'},
+helper: { fontSize: 12, color: '#666', marginTop: 4 },
 });

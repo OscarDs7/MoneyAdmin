@@ -1,15 +1,26 @@
 import { useCallback, useState } from 'react';
-import { View, Text, FlatList, Button, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  Button,
+  StyleSheet,
+  Alert,
+  Pressable,
+} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { getSubscriptions, clearSubscriptions } from '../services/subscriptions.service';
-import { sendTestNotification } from '../services/notifications.service';
+import {
+  getSubscriptions,
+  clearSubscriptions,
+  deleteSubscription,
+} from '../services/subscriptions.service';
+import { sendTestNotification, sendSubscriptionDeletedNotification } from '../services/notifications.service';
 
 export default function SubscriptionsScreen({ navigation }) {
   const [subscriptions, setSubscriptions] = useState([]);
 
   const loadSubscriptions = () => {
-    const data = getSubscriptions();
-    setSubscriptions(data || []);
+    setSubscriptions(getSubscriptions() || []);
   };
 
   useFocusEffect(
@@ -17,8 +28,27 @@ export default function SubscriptionsScreen({ navigation }) {
       loadSubscriptions();
     }, [])
   );
-  // Calculate total amount of subscriptions
+
   const total = subscriptions.reduce((sum, s) => sum + s.amount, 0);
+
+  const confirmDelete = (subscription) => {
+    Alert.alert(
+      'Eliminar suscripción',
+      `¿Seguro que deseas eliminar "${subscription.name}"?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => {
+            deleteSubscription(subscription.id);
+            loadSubscriptions();
+           // sendSubscriptionDeletedNotification(subscription);
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -29,35 +59,55 @@ export default function SubscriptionsScreen({ navigation }) {
         title="Agregar suscripción"
         onPress={() => navigation.navigate('AddSubscription')}
       />
-    
+
       <FlatList
         data={subscriptions}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={
-          <Text style={styles.empty}>
-            No hay suscripciones registradas
-          </Text>
+          <Text style={styles.empty}>No hay suscripciones</Text>
         }
         renderItem={({ item }) => (
-          <View style={styles.item}>
+          <Pressable
+            onPress={() =>
+              navigation.navigate('AddSubscription', { subscription: item })
+            }
+            onLongPress={() => confirmDelete(item)}
+            style={styles.item}
+          >
             <Text style={styles.name}>{item.name}</Text>
             <Text>${item.amount}</Text>
-            <Text>Pago: {new Date(item.billingDate).toLocaleDateString()}</Text>
-            <Text>Frecuencia: {item.frequency}</Text>
-          </View>
+            <Text>
+              Pago: {new Date(item.billingDate).toLocaleDateString()}
+            </Text>
+          </Pressable>
         )}
       />
-   <Button
-      title="Borrar todas las suscripciones"
-      onPress={() => {
-        clearSubscriptions();
-        loadSubscriptions();
-        sendTestNotification('Suscripciones borradas', 'Se eliminaron todas.');
-      }}
-    />
+
+      <Button
+        title="Borrar todas las suscripciones"
+        onPress={() =>
+          Alert.alert(
+            'Eliminar todo',
+            '¿Seguro que deseas borrar todas las suscripciones?',
+            [
+              { text: 'Cancelar', style: 'cancel' },
+              {
+                text: 'Eliminar',
+                style: 'destructive',
+                onPress: () => {
+                  clearSubscriptions();
+                  loadSubscriptions();
+                  sendTestNotification();
+                },
+              },
+            ]
+          )
+        }
+      />
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 36},
